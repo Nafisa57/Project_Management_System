@@ -826,7 +826,7 @@ export default function Welcome() {
                 <div className="flex items-center space-x-2">
                     <Link href="/" className="flex items-center">
                         <img
-                            src="/icon1.jpeg"
+                            src="/icon.jpeg"
                             alt="Logo"
                             className="h-8 w-auto"
                         />
@@ -888,17 +888,17 @@ export default function Welcome() {
                {/* Body with GIF */}
            <main className="relative w-screen h-screen">
   <img
-    src="/body1.jpeg"
+    src="/body_sh.jpeg"
     alt="Demo GIF"
     className="absolute top-0 left-0 w-full h-full object-cover"
   />
 
   {/* Text overlay */}
   <div className="relative z-10 flex flex-col items-top justify-top w-full h-full text-center px-4">
-    <h1 className="text-4xl md:text-6xl font-bold  text-emerald-700 drop-shadow-lg">
+    <h1 className="text-4xl md:text-6xl font-bold  text-black drop-shadow-lg">
       Welcome to Project Management
     </h1>
-    <p className="mt-4 text-lg md:text-2xl text-emerald-700 drop-shadow-md">
+    <p className="mt-4 text-lg md:text-2xl text-black drop-shadow-md">
       Manage projects smarter with ease 🚀
     </p>
   </div>
