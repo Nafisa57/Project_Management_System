@@ -4,18 +4,16 @@ import { type BreadcrumbItem } from "@/types";
 import { Head, Link } from "@inertiajs/react";
 
 const breadcrumbs: BreadcrumbItem[] = [
-  {
-    title: "Users",
-    href: "/users",
-  },
+  { title: "Users", href: "/users" },
 ];
 
-// dummy user data for now
 const dummyUsers = [
   { id: 1, name: "Nafisa", email: "nafisa@example.com", role: "Admin" },
   { id: 2, name: "Anas", email: "anas@example.com", role: "Manager" },
   { id: 3, name: "Aisha", email: "aisha@example.com", role: "Client" },
   { id: 4, name: "Zara", email: "zara@example.com", role: "Support" },
+  { id: 5, name: "Omar", email: "omar@example.com", role: "Client" },
+  { id: 6, name: "Lina", email: "lina@example.com", role: "Manager" },
 ];
 
 export default function Index() {
@@ -32,88 +30,82 @@ export default function Index() {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Users" />
 
-      <div className="flex h-full flex-1 flex-col gap-6 p-4">
-        {/* Top bar with search */}
+      <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-gray-50">
+        {/* Top bar */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Users</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Users</h1>
           <input
             type="text"
             placeholder="Search users..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-64 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+            className="w-64 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
           />
         </div>
 
-        {/* Users Table */}
-        <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-800">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Name
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Email
-                </th>
-                <th className="px-4 py-2 text-left text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Role
-                </th>
-                <th className="px-4 py-2 text-right text-sm font-medium text-gray-600 dark:text-gray-300">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {filteredUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-4 py-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    {user.name}
-                  </td>
-                  <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                    {user.email}
-                  </td>
-                  <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                    {user.role}
-                  </td>
-                  <td className="px-4 py-2 text-right text-sm">
-                    <div className="flex justify-end gap-2">
-                      <Link
-                        href={`/users/${user.id}`}
-                        className="rounded-md bg-blue-500 px-3 py-1 text-xs text-white hover:bg-blue-600"
-                      >
-                        Show
-                      </Link>
-                      <Link
-                        href={`/users/${user.id}/edit`}
-                        className="rounded-md bg-yellow-500 px-3 py-1 text-xs text-white hover:bg-yellow-600"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => alert(`Delete user ${user.id}`)}
-                        className="rounded-md bg-red-500 px-3 py-1 text-xs text-white hover:bg-red-600"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-              {filteredUsers.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-                  >
-                    No users found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {/* User cards grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+  {filteredUsers.map((user) => (
+    <div
+      key={user.id}
+      className="rounded-2xl bg-white p-6 border border-gray-100 shadow-[0_4px_12px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_18px_rgba(139,92,246,0.45)] transition-shadow"
+    >
+      {/* Avatar */}
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 flex items-center justify-center rounded-full bg-indigo-100 text-indigo-600 font-bold">
+          {user.name[0]}
         </div>
+        <div>
+          <div className="text-sm font-semibold text-gray-800">{user.name}</div>
+          <div className="text-xs text-gray-500">{user.email}</div>
+        </div>
+      </div>
+
+      {/* Role badge */}
+      <div className="mt-4">
+        <span
+          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+            user.role === "Admin"
+              ? "bg-red-100 text-red-600"
+              : user.role === "Manager"
+              ? "bg-blue-100 text-blue-600"
+              : user.role === "Support"
+              ? "bg-purple-100 text-purple-600"
+              : "bg-green-100 text-green-600"
+          }`}
+        >
+          {user.role}
+        </span>
+      </div>
+
+      {/* Actions */}
+      <div className="mt-5 flex gap-2">
+        <Link
+          href={`/users/${user.id}`}
+          className="flex-1 rounded-lg bg-indigo-500 px-3 py-2 text-xs text-center text-white hover:bg-indigo-600"
+        >
+          Show
+        </Link>
+        <Link
+          href={`/users/${user.id}/edit`}
+          className="flex-1 rounded-lg bg-yellow-500 px-3 py-2 text-xs text-center text-white hover:bg-yellow-600"
+        >
+          Edit
+        </Link>
+        <button
+          onClick={() => alert(`Delete user ${user.id}`)}
+          className="flex-1 rounded-lg bg-red-500 px-3 py-2 text-xs text-white hover:bg-red-600"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  ))}
+</div>
+
+        {filteredUsers.length === 0 ? (
+          <div className="text-center py-10 text-gray-500">No users found</div>
+        ) : null}
       </div>
     </AppLayout>
   );
