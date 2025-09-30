@@ -29,12 +29,25 @@ class TaskController extends Controller
         return redirect()->route('projects.show', $projectId)->with('success', 'Task created (dummy)');
     }
 
-    public function show($id)
-    {
-        // dummy single task view (would normally fetch model)
-        $task = ['id'=> $id, 'title'=>'Task '.$id, 'status'=>'todo', 'assigned'=>'N/A'];
-        return Inertia::render('Tasks/Show', ['task' => $task]);
-    }
+    // app/Http/Controllers/TaskController.php
+public function show($id)
+{
+    // dummy task
+    $task = ['id'=> $id, 'title'=>'Task '.$id, 'status'=>'todo', 'assigned'=>'N/A', 'project_id'=>1];
+
+    // dummy subtasks (in real app: Subtask::where('task_id',$id)->get())
+    $subtasks = [
+        ['id'=> 101, 'title'=>'Wireframes', 'status'=>'todo', 'assigned'=>'Nafisa', 'due_date'=>'2025-09-05'],
+        ['id'=> 102, 'title'=>'Prototype', 'status'=>'in_progress', 'assigned'=>'Anas', 'due_date'=>'2025-09-12'],
+    ];
+
+    return Inertia::render('Tasks/Show', [
+        'task' => $task,
+        'subtasks' => $subtasks,
+        'projectId' => 1,
+    ]);
+}
+
 
     public function edit($projectId, $id)
     {

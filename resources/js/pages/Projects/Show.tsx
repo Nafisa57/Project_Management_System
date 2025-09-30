@@ -1,25 +1,41 @@
 // resources/js/Pages/Projects/Show.tsx
-import React, { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { type BreadcrumbItem } from '@/types';
+import React, { useState } from "react";
+import AppLayout from "@/layouts/app-layout";
+import { Head, Link, usePage } from "@inertiajs/react";
+import { type BreadcrumbItem } from "@/types";
 
 const breadcrumbsBase: BreadcrumbItem[] = [
-  { title: 'Projects', href: '/projects' },
+  { title: "Projects", href: "/projects" },
 ];
 
 const dummyProject = {
   id: 1,
-  name: 'AI Research',
-  owner: 'Nafisa',
-  status: 'Active',
-  start_date: '2025-09-01',
-  end_date: '2025-12-01',
+  name: "AI Research",
+  owner: "Nafisa",
+  status: "Active",
+  start_date: "2025-09-01",
+  end_date: "2025-12-01",
 };
 
+const dummyUsers = ["Nafisa", "Anas", "Aisha", "Khalid"];
+
 const dummyTasks = [
-  { id: 1, title: 'Design mockups', assigned: 'Aisha', status: 'in_progress', priority: 'High', due_date: '2025-09-10' },
-  { id: 2, title: 'Research dataset', assigned: 'Nafisa', status: 'todo', priority: 'Medium', due_date: '2025-09-20' },
+  {
+    id: 1,
+    title: "Design mockups",
+    assigned: "Aisha",
+    status: "in_progress",
+    priority: "High",
+    due_date: "2025-09-10",
+  },
+  {
+    id: 2,
+    title: "Research dataset",
+    assigned: "Nafisa",
+    status: "todo",
+    priority: "Medium",
+    due_date: "2025-09-20",
+  },
 ];
 
 export default function Show() {
@@ -29,14 +45,16 @@ export default function Show() {
   const initialTasks = page.props.tasks ?? dummyTasks;
 
   const [tasks, setTasks] = useState(initialTasks);
-  const [q, setQ] = useState('');
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [q, setQ] = useState("");
+  const [newTaskTitle, setNewTaskTitle] = useState("");
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
+  const [comments, setComments] = useState<{ [key: number]: string[] }>({});
+  const [newComment, setNewComment] = useState<{ [key: number]: string }>({});
 
   const filtered = tasks.filter(
     (t: any) =>
       t.title.toLowerCase().includes(q.toLowerCase()) ||
-      (t.assigned ?? '').toLowerCase().includes(q.toLowerCase())
+      (t.assigned ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
   function addTask(e: React.FormEvent) {
@@ -45,23 +63,37 @@ export default function Show() {
     const nt = {
       id: Date.now(),
       title: newTaskTitle,
-      assigned: 'Unassigned',
-      status: 'todo',
-      priority: 'Medium',
-      due_date: '',
+      assigned: "Unassigned",
+      status: "todo",
+      priority: "Medium",
+      due_date: "",
     };
     setTasks([nt, ...tasks]);
-    setNewTaskTitle('');
+    setNewTaskTitle("");
   }
 
   function removeTask(id: number) {
-    if (!confirm('Delete task?')) return;
+    if (!confirm("Delete task?")) return;
     setTasks(tasks.filter((t) => t.id !== id));
   }
 
   function updateStatus(taskId: number, newStatus: string) {
     setTasks(tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
     setEditingStatusId(null);
+  }
+
+  function updateAssignee(taskId: number, newUser: string) {
+    setTasks(tasks.map((t) => (t.id === taskId ? { ...t, assigned: newUser } : t)));
+  }
+
+  function addComment(taskId: number) {
+    const comment = newComment[taskId]?.trim();
+    if (!comment) return;
+    setComments({
+      ...comments,
+      [taskId]: [...(comments[taskId] || []), comment],
+    });
+    setNewComment({ ...newComment, [taskId]: "" });
   }
 
   return (
@@ -72,7 +104,9 @@ export default function Show() {
         <header className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold">{project.name}</h1>
-            <p className="text-sm text-gray-600">Owner: {project.owner} · Status: {project.status}</p>
+            <p className="text-sm text-gray-600">
+              Owner: {project.owner} · Status: {project.status}
+            </p>
             <p className="text-sm text-gray-500">
               Dates: {project.start_date} → {project.end_date}
             </p>
@@ -111,26 +145,17 @@ export default function Show() {
                   placeholder="New task title"
                   className="flex-1 rounded border px-3 py-2"
                 />
-                <button className="rounded bg-indigo-600 px-4 py-2 text-white">Add</button>
+                <button className="rounded bg-indigo-600 px-4 py-2 text-white">Add New Task</button>
               </form>
 
-              <div className="mt-4">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-2 text-left text-sm">Title</th>
-                      <th className="px-4 py-2 text-left text-sm">Assigned</th>
-                      <th className="px-4 py-2 text-left text-sm">Status</th>
-                      <th className="px-4 py-2 text-left text-sm">Due</th>
-                      <th className="px-4 py-2 text-right text-sm">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {filtered.map((t: any) => (
-                      <tr key={t.id}>
-                        <td className="px-4 py-3 text-sm font-medium">{t.title}</td>
-                        <td className="px-4 py-3 text-sm">{t.assigned}</td>
-                        <td className="px-4 py-3 text-sm">
+              <div className="mt-4 space-y-4">
+                {filtered.map((t: any) => (
+                  <div key={t.id} className="rounded-lg border p-3">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium">{t.title}</p>
+                        <div className="text-sm text-gray-600">
+                          <span>Status: </span>
                           {editingStatusId === t.id ? (
                             <select
                               value={t.status}
@@ -148,50 +173,91 @@ export default function Show() {
                               onClick={() => setEditingStatusId(t.id)}
                               className="cursor-pointer rounded px-2 py-1 bg-gray-200 hover:bg-gray-300"
                             >
-                              {t.status.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+                              {t.status.replace("_", " ")}
                             </span>
                           )}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{t.due_date || '-'}</td>
-                        <td className="px-4 py-3 text-right text-sm">
-                          <div className="flex justify-end gap-2">
-                            <Link
-                              href={`/tasks/${t.id}`}
-                              className="rounded bg-blue-500 px-3 py-1 text-white text-xs"
-                            >
-                              Show
-                            </Link>
-                            <Link
-                              href={`/projects/${project.id}/tasks/${t.id}/edit`}
-                              className="rounded bg-yellow-500 px-3 py-1 text-white text-xs"
-                            >
-                              Edit
-                            </Link>
-                            <button
-                              onClick={() => removeTask(t.id)}
-                              className="rounded bg-red-500 px-3 py-1 text-white text-xs"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                        </div>
+                        <div className="text-sm">
+                          <span>Assigned: </span>
+                          <select
+                            value={t.assigned}
+                            onChange={(e) => updateAssignee(t.id, e.target.value)}
+                            className="rounded border px-2 py-1 text-sm"
+                          >
+                            <option>Unassigned</option>
+                            {dummyUsers.map((u) => (
+                              <option key={u}>{u}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
 
-                    {filtered.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500">
-                          No tasks found
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/tasks/${t.id}`}
+                          className="rounded bg-blue-500 px-3 py-1 text-white text-xs"
+                        >
+                          Show Subtask
+                        </Link>
+                        <button
+                          onClick={() => removeTask(t.id)}
+                          className="rounded bg-red-500 px-3 py-1 text-white text-xs"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Comments */}
+                    <div className="mt-3 border-t pt-2">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-1">
+                        Comments
+                      </h4>
+                      <div className="space-y-2 max-h-20 overflow-y-auto">
+                        {comments[t.id]?.length ? (
+                          comments[t.id].map((c, i) => (
+                            <div
+                              key={i}
+                              className="rounded bg-gray-50 px-2 py-1 text-sm border"
+                            >
+                              {c}
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-gray-400">No comments yet</p>
+                        )}
+                      </div>
+                      <div className="flex mt-2 gap-2">
+                        <input
+                          type="text"
+                          placeholder="Write comment..."
+                          value={newComment[t.id] || ""}
+                          onChange={(e) =>
+                            setNewComment({ ...newComment, [t.id]: e.target.value })
+                          }
+                          className="flex-1 rounded border px-2 py-1 text-sm"
+                        />
+                        <button
+                          onClick={() => addComment(t.id)}
+                          className="rounded bg-indigo-500 px-3 py-1 text-white text-xs"
+                        >
+                          Add
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {filtered.length === 0 && (
+                  <p className="text-center text-sm text-gray-500 py-4">
+                    No tasks found
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
-          {/* right: project summary / quick stats */}
+          {/* right: project summary */}
           <aside className="rounded-xl border p-4">
             <h3 className="font-semibold">Project Summary</h3>
             <ul className="mt-3 space-y-2 text-sm text-gray-700">

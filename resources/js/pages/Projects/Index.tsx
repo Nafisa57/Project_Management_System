@@ -1,180 +1,200 @@
-// resources/js/Pages/Projects/Index.tsx
-import React, { useState } from 'react';
-import AppLayout from '@/layouts/app-layout';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { type BreadcrumbItem } from '@/types';
+import { useState } from "react";
+import AppLayout from "@/layouts/app-layout";
+import { type BreadcrumbItem } from "@/types";
+import { Head, Link } from "@inertiajs/react";
 
 const breadcrumbs: BreadcrumbItem[] = [
-  { title: 'Projects', href: '/projects' },
+  { title: "Projects", href: "/projects" },
 ];
 
 const dummyProjects = [
-  { id: 1, name: 'AI Research', owner: 'Nafisa', status: 'Active', start_date: '2025-09-01', end_date: '2025-12-01', tasks_count: 5 },
-  { id: 2, name: 'Website Redesign', owner: 'Anas', status: 'Planning', start_date: '2025-08-10', end_date: '2025-10-15', tasks_count: 8 },
+  {
+    id: 1,
+    name: "AI Research",
+    owner: "Nafisa",
+    status: "Active",
+    start_date: "2025-09-01",
+    end_date: "2025-12-01",
+    tasks_count: 5,
+  },
+  {
+    id: 2,
+    name: "Website Redesign",
+    owner: "Anas",
+    status: "Planning",
+    start_date: "2025-08-10",
+    end_date: "2025-10-15",
+    tasks_count: 8,
+  },
 ];
 
 export default function Index() {
-  const page: any = usePage();
-  const initialProjects = page.props.projects ?? dummyProjects;
+  const [query, setQuery] = useState("");
+  const [projects, setProjects] = useState(dummyProjects);
+  const [comments, setComments] = useState<{ [key: number]: string[] }>({});
+  const [newComment, setNewComment] = useState<{ [key: number]: string }>({});
 
-  const [projects, setProjects] = useState(initialProjects);
-  const [query, setQuery] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    owner: '',
-    status: 'Planning',
-    start_date: '',
-    end_date: '',
-  });
-
-  const filtered = projects.filter((p) =>
-    p.name.toLowerCase().includes(query.toLowerCase()) ||
-    p.owner?.toLowerCase().includes(query.toLowerCase()) ||
-    (p.status ?? '').toLowerCase().includes(query.toLowerCase())
+  const filteredProjects = projects.filter(
+    (p) =>
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      p.owner.toLowerCase().includes(query.toLowerCase()) ||
+      p.status.toLowerCase().includes(query.toLowerCase())
   );
 
-  function handleCreate(e: React.FormEvent) {
-    e.preventDefault();
-    const newProject = { id: Date.now(), ...form, tasks_count: 0 };
-    setProjects([newProject, ...projects]);
-    setIsCreating(false);
-    setForm({ name: '', owner: '', status: 'Planning', start_date: '', end_date: '' });
-  }
-
   function handleDelete(id: number) {
-    if (!confirm('Delete this project?')) return;
+    if (!confirm("Delete this project?")) return;
     setProjects(projects.filter((p) => p.id !== id));
   }
 
   function handleQuickEdit(id: number) {
-    const name = prompt('Set new project name:');
+    const name = prompt("Set new project name:");
     if (!name) return;
     setProjects(projects.map((p) => (p.id === id ? { ...p, name } : p)));
+  }
+
+  function addComment(projectId: number) {
+    const comment = newComment[projectId]?.trim();
+    if (!comment) return;
+    setComments({
+      ...comments,
+      [projectId]: [...(comments[projectId] || []), comment],
+    });
+    setNewComment({ ...newComment, [projectId]: "" });
   }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Projects" />
 
-      <div className="flex h-full flex-1 flex-col gap-6 p-4">
+      <div className="flex h-full flex-1 flex-col gap-6 p-6 bg-gray-50">
+        {/* Top bar */}
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold">Projects</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Projects</h1>
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-64 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+          />
+        </div>
 
-          <div className="flex items-center gap-3">
-            <label htmlFor="search" className="sr-only">Search Projects</label>
-            <input
-              id="search"
-              type="text"
-              placeholder="Search projects..."
-              aria-label="Search Projects"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-72 rounded-lg border px-3 py-2 text-sm"
-            />
-            <button
-              onClick={() => setIsCreating(true)}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm text-white"
+        {/* Project cards grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProjects.map((project) => (
+            <div
+              key={project.id}
+              className="rounded-2xl bg-white p-6 border border-gray-100 shadow-[0_4px_12px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_18px_rgba(139,92,246,0.45)] transition-shadow flex flex-col"
             >
-              + New Project
-            </button>
-          </div>
+              {/* Project header */}
+              <div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {project.name}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Owner: {project.owner}
+                </div>
+                <div className="mt-1 text-sm text-gray-600">
+                  {project.start_date} → {project.end_date}
+                </div>
+              </div>
+
+              {/* Status badge */}
+              <div className="mt-3">
+                <span
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
+                    project.status === "Active"
+                      ? "bg-green-100 text-green-600"
+                      : project.status === "Planning"
+                      ? "bg-blue-100 text-blue-600"
+                      : "bg-gray-100 text-gray-600"
+                  }`}
+                >
+                  {project.status}
+                </span>
+              </div>
+
+              {/* Tasks count */}
+              <div className="mt-2 text-sm text-gray-700">
+                Tasks: {project.tasks_count}
+              </div>
+
+              {/* Actions */}
+              <div className="mt-4 flex gap-2">
+                <Link
+                  href={`/projects/${project.id}`}
+                  className="flex-1 rounded-lg bg-indigo-500 px-3 py-2 text-xs text-center text-white hover:bg-indigo-600"
+                >
+                  Show
+                </Link>
+                <button
+                  onClick={() => handleQuickEdit(project.id)}
+                  className="flex-1 rounded-lg bg-yellow-500 px-3 py-2 text-xs text-white hover:bg-yellow-600"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(project.id)}
+                  className="flex-1 rounded-lg bg-red-500 px-3 py-2 text-xs text-white hover:bg-red-600"
+                >
+                  Delete
+                </button>
+              </div>
+
+              {/* Comments Section */}
+              <div className="mt-5 border-t pt-4 flex flex-col flex-1">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                  Comments
+                </h4>
+
+                {/* Comments list */}
+                <div className="flex-1 space-y-2 max-h-32 overflow-y-auto">
+                  {comments[project.id]?.length ? (
+                    comments[project.id].map((c, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-800 shadow-sm border"
+                      >
+                        {c}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400">No comments yet</p>
+                  )}
+                </div>
+
+                {/* Add comment input + button */}
+                <div className="mt-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Write a comment..."
+                      value={newComment[project.id] || ""}
+                      onChange={(e) =>
+                        setNewComment({
+                          ...newComment,
+                          [project.id]: e.target.value,
+                        })
+                      }
+                      className="min-w-0 flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                    />
+                    <button
+                      onClick={() => addComment(project.id)}
+                      className="shrink-0 rounded-lg bg-indigo-500 px-4 py-2 text-sm text-white hover:bg-indigo-600"
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-4 py-2 text-left text-sm font-medium">Project</th>
-                <th className="px-4 py-2 text-left text-sm font-medium">Owner</th>
-                <th className="px-4 py-2 text-left text-sm font-medium">Status</th>
-                <th className="px-4 py-2 text-left text-sm font-medium">Dates</th>
-                <th className="px-4 py-2 text-right text-sm font-medium">Tasks</th>
-                <th className="px-4 py-2 text-right text-sm font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filtered.map((p: any) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{p.name}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{p.owner}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{p.status}</td>
-                  <td className="px-4 py-3 text-sm text-gray-700">{p.start_date} → {p.end_date}</td>
-                  <td className="px-4 py-3 text-sm text-right">{p.tasks_count}</td>
-                  <td className="px-4 py-3 text-right text-sm">
-                    <div className="flex justify-end gap-2">
-                      <Link href={`/projects/${p.id}`} className="rounded bg-blue-500 px-3 py-1 text-white text-xs">Show</Link>
-                      <button onClick={() => handleQuickEdit(p.id)} className="rounded bg-yellow-500 px-3 py-1 text-white text-xs">Edit</button>
-                      <button onClick={() => handleDelete(p.id)} className="rounded bg-red-500 px-3 py-1 text-white text-xs">Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-500">No projects found</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        {filteredProjects.length === 0 && (
+          <div className="text-center py-10 text-gray-500">No projects found</div>
+        )}
       </div>
-
-      {/* Create Project Modal */}
-      {isCreating && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <form onSubmit={handleCreate} className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
-            <h3 className="mb-4 text-lg font-semibold">Create Project</h3>
-
-            <div className="mb-2">
-              <label htmlFor="projectName" className="block text-sm">Name</label>
-              <input
-                id="projectName"
-                aria-label="Project Name"
-                required
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Enter project name"
-                className="w-full rounded border px-3 py-2"
-              />
-            </div>
-
-            <div className="mb-2">
-              <label htmlFor="projectOwner" className="block text-sm">Owner</label>
-              <input
-                id="projectOwner"
-                aria-label="Project Owner"
-                required
-                value={form.owner}
-                onChange={(e) => setForm({ ...form, owner: e.target.value })}
-                placeholder="Enter owner name"
-                className="w-full rounded border px-3 py-2"
-              />
-            </div>
-
-            <div className="mb-2">
-              <label htmlFor="projectStatus" className="block text-sm">Status</label>
-              <select
-                id="projectStatus"
-                aria-label="Project Status"
-                value={form.status}
-                onChange={(e) => setForm({ ...form, status: e.target.value })}
-                className="w-full rounded border px-3 py-2"
-              >
-                <option>Planning</option>
-                <option>Active</option>
-                <option>Completed</option>
-              </select>
-            </div>
-
-            <div className="mt-4 flex justify-end gap-2">
-              <button type="button" onClick={() => setIsCreating(false)} className="rounded border px-4 py-2">Cancel</button>
-              <button className="rounded bg-indigo-600 px-4 py-2 text-white">Create</button>
-            </div>
-          </form>
-        </div>
-      )}
     </AppLayout>
   );
 }
