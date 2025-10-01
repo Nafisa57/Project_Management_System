@@ -6,6 +6,9 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TicketController;
+use App\Http\Controllers\ActivityLogController;
+
 
 
 Route::get('/', function () {
@@ -23,6 +26,9 @@ Route::resource("projects", ProjectController::class);
  // nested tasks (shallow so /tasks/{task} exists for non-nested routes)
 Route::resource('projects.tasks', TaskController::class)->shallow();
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+Route::resource('tickets', TicketController::class);
+Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log');
+
 
 });
 

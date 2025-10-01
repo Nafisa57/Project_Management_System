@@ -41,20 +41,20 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Tickets Module',
+        title: 'Tickets',
         href: '/tickets',
         icon: Tickets,
     },
     {
-        title: 'Projects & Tasks Module',
+        title: 'Projects & Tasks',
         href: '/projects',
         icon: LayoutList,
     },
     {
-        title: 'Activity Log',
-        href: '/activitylog',
-        icon: LayoutGrid,
-    },
+    title: 'Activity Log',
+    href: '/activity-log',
+    icon: LayoutGrid,
+},
 ];
 
 const footerNavItems: NavItem[] = [

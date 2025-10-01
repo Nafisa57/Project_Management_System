@@ -895,10 +895,10 @@ export default function Welcome() {
 
   {/* Text overlay */}
   <div className="relative z-10 flex flex-col items-top justify-top w-full h-full text-center px-4">
-    <h1 className="text-4xl md:text-6xl font-bold  text-black drop-shadow-lg">
+    <h1 className="text-4xl md:text-6xl font-bold  text-purple-800 drop-shadow-lg">
       Welcome to Project Management
     </h1>
-    <p className="mt-4 text-lg md:text-2xl text-black drop-shadow-md">
+    <p className="mt-4 text-lg md:text-2xl text-white drop-shadow-md">
       Manage projects smarter with ease 🚀
     </p>
   </div>
