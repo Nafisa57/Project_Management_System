@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
-// Define the structure of the user object for type safety within the component
+// Define the structure of the user object for type safety
 interface UserData {
     id: number;
     name: string;
@@ -13,23 +13,21 @@ interface UserData {
 const breadcrumbsBase: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }];
 
 export default function Edit() {
-    // 1. Get the user data from Inertia props using 'any' to avoid PageProps error.
-    // We assume the user data is passed under the key 'user'.
+    // Get the user data from Inertia props. We assume the key is 'user'.
     const { user } = usePage<any>().props as { user: UserData };
 
-    // 2. Setup Inertia's useForm hook with initial user data
+    // Setup Inertia's useForm hook
     const { data, setData, put, processing, errors } = useForm({
         name: user.name,
         email: user.email,
         role: user.role,
     });
 
-    // 3. Handle form submission
+    // Handle form submission
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
         // Sends a PUT request to the backend route /users/{user.id}
-        // Backend must handle the update and redirect to /users on success.
         put(`/users/${user.id}`);
     };
 
@@ -43,7 +41,7 @@ export default function Edit() {
         >
             <Head title={`Edit ${user.name}`} />
 
-            {/* Centering Wrapper: Uses flex utilities for vertical and horizontal centering */}
+            {/* Centering Wrapper */}
             <div className="flex min-h-[calc(100vh-100px)] items-center justify-center p-4">
                 <div className="w-full max-w-lg rounded-xl border bg-white p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
                     <h1 className="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white">
@@ -51,7 +49,7 @@ export default function Edit() {
                     </h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Name Field */}
+                        {/* Name Field - NO 'required' attribute */}
                         <div>
                             <label
                                 htmlFor="name"
@@ -75,7 +73,7 @@ export default function Edit() {
                             )}
                         </div>
 
-                        {/* Email Field */}
+                        {/* Email Field - NO 'required' attribute */}
                         <div>
                             <label
                                 htmlFor="email"

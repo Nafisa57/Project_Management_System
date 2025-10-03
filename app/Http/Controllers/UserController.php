@@ -49,19 +49,37 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
-    {
-        //
-    }
+   public function edit(User $user)
+{
+    // Pass the user object to the Edit.tsx component
+    return Inertia::render('Users/Edit', [
+        'user' => $user->only('id', 'name', 'email', 'role'), 
+    ]);
+}
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
+//     public function update(Request $request, string $id)
+//     {
+//         //
+//     }
+// // In UserController.php
+public function update(Request $request, User $user)
+{
+    // 1. Validate the incoming data (name, email, role)
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $user->id,
+        'role' => 'required|string',
+    ]);
+    
+    // 2. Update the user in the database
+    $user->update($validated);
+    
+    // 3. Redirect to the index page to show all changes 👈 THIS IS CRUCIAL
+    return redirect()->route('users.index'); 
+}
     /**
      * Remove the specified resource from storage.
      */
