@@ -27,7 +27,7 @@ Route::resource("projects", ProjectController::class);
 Route::resource('projects.tasks', TaskController::class)->shallow();
 Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
 Route::resource('tickets', TicketController::class);
-Route::get('/activity-log', [ActivityLogController::class, 'index'])->name('activity-log');
+Route::get('/activity_log', [ActivityLogController::class, 'index'])->name('activity_log');
 
 
 });

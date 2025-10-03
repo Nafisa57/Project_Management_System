@@ -141,7 +141,7 @@ export default function Dashboard() {
 
           {/* Right Friends Panel */}
           <div className="bg-white rounded-2xl p-6 shadow-md">
-            <h3 className="text-lg font-semibold mb-4">Friends</h3>
+            <h3 className="text-lg font-semibold mb-4">Team Members</h3>
             <div className="space-y-4">
               {dummyUsers.map((u) => (
                 <div
