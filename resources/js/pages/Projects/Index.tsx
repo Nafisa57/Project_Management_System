@@ -125,7 +125,7 @@ export default function Index() {
                   href={`/projects/${project.id}`}
                   className="flex-1 rounded-lg bg-indigo-500 px-3 py-2 text-xs text-center text-white hover:bg-indigo-600"
                 >
-                  Show
+                  Show Tasks
                 </Link>
                 <button
                   onClick={() => handleQuickEdit(project.id)}

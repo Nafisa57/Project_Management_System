@@ -52,7 +52,7 @@ const mainNavItems: NavItem[] = [
     },
     {
     title: 'Activity Log',
-    href: '/activity-log',
+    href: '/activity_log',
     icon: LayoutGrid,
 },
 ];
