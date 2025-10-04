@@ -19,7 +19,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
- 
+
 Route::resource("users", UserController::class);
 Route::resource("roles", RoleController::class);
 Route::resource("projects", ProjectController::class);
@@ -33,13 +33,7 @@ Route::put('/users/{user}', [UserController::class, 'update'])->name('users.upda
  
 Route::resource('tickets', TicketController::class);
 Route::get('/activity_log', [ActivityLogController::class, 'index'])->name('activity_log');
-<<<<<<< HEAD
- 
- 
-=======
 
-
->>>>>>> d38b3333b6b1b7c7eb358c6be4e86da0b262cb0a
 });
  
 require __DIR__.'/settings.php';
