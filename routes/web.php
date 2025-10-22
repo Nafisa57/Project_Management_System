@@ -33,13 +33,13 @@ Route::put('/users/{user}', [UserController::class, 'update'])->name('users.upda
  
 Route::resource('tickets', TicketController::class);
 Route::get('/activity_log', [ActivityLogController::class, 'index'])->name('activity_log');
-<<<<<<< HEAD
+// <<<<<<< HEAD
  
  
-=======
+// =======>
 
 
->>>>>>> d38b3333b6b1b7c7eb358c6be4e86da0b262cb0a
+// >>>>>>> d38b3333b6b1b7c7eb358c6be4e86da0b262cb0a
 });
  
 require __DIR__.'/settings.php';

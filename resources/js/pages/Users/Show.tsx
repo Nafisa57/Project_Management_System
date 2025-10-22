@@ -1,153 +1,156 @@
-import AppLayout from '@/layouts/app-layout';
-import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+// resources/js/Pages/Users/Show.tsx
+import { useState } from "react";
+import AppLayout from "@/layouts/app-layout";
+import { type BreadcrumbItem } from "@/types";
+import { Head, Link, usePage } from "@inertiajs/react";
 
-// Define the structure of the user object for type safety within the component
-interface UserData {
-    id: number;
-    name: string;
-    email: string;
-    role: string;
+interface Project {
+  id: number;
+  name: string;
+  status: string;
 }
 
-const breadcrumbsBase: BreadcrumbItem[] = [{ title: 'Users', href: '/users' }];
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  projects: Project[];
+}
 
-export default function Edit() {
-    // 1. Get the user data from Inertia props using 'any' to avoid PageProps error.
-    // We assume the user data is passed under the key 'user'.
-    const { user } = usePage<any>().props as { user: UserData };
+const breadcrumbsBase: BreadcrumbItem[] = [
+  { title: "Users", href: "/users" },
+];
 
-    // 2. Setup Inertia's useForm hook with initial user data
-    const { data, setData, put, processing, errors } = useForm({
-        name: user.name,
-        email: user.email,
-        role: user.role,
-    });
+// Dummy users array
+const dummyUsers: User[] = [
+  {
+    id: 1,
+    name: "Nafisa",
+    email: "nafisa@example.com",
+    role: "Admin",
+    projects: [
+      { id: 1, name: "AI Research", status: "In Progress" },
+      { id: 2, name: "Website Redesign", status: "Completed" },
+    ],
+  },
+  {
+    id: 2,
+    name: "Anas",
+    email: "anas@example.com",
+    role: "Manager",
+    projects: [
+      { id: 3, name: "Mobile App", status: "In Progress" },
+    ],
+  },
+  {
+    id: 3,
+    name: "Aisha",
+    email: "aisha@example.com",
+    role: "Client",
+    projects: [],
+  },
+  {
+    id: 4,
+    name: "Zara",
+    email: "zara@example.com",
+    role: "Support",
+    projects: [
+      { id: 4, name: "Ticketing System", status: "Completed" },
+      { id: 5, name: "Bug Fixes", status: "In Progress" },
+    ],
+  },
+];
 
-    // 3. Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+export default function Show() {
+  const [showProjects, setShowProjects] = useState(true);
 
-        // Sends a PUT request to the backend route /users/{user.id}
-        // Backend must handle the update and redirect to /users on success.
-        put(`/users/${user.id}`);
-    };
+  // Get userId from URL using Inertia props
+  const { userId } = usePage<{ userId: string }>().props;
+  const user = dummyUsers.find(u => u.id === Number(userId)) || dummyUsers[0];
 
-    return (
-        <AppLayout
-            breadcrumbs={[
-                ...breadcrumbsBase,
-                { title: user.name, href: `/users/${user.id}` },
-                { title: 'Edit', href: `/users/${user.id}/edit` },
-            ]}
-        >
-            <Head title={`Edit ${user.name}`} />
+  return (
+    <AppLayout breadcrumbs={[...breadcrumbsBase, { title: user.name, href: `/users/${user.id}` }]}>
+      <Head title={user.name} />
 
-            {/* Centering Wrapper: Uses flex utilities for vertical and horizontal centering */}
-            <div className="flex min-h-[calc(100vh-100px)] items-center justify-center p-4">
-                <div className="w-full max-w-lg rounded-xl border bg-white p-8 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
-                    <h1 className="mb-8 text-center text-3xl font-bold text-gray-900 dark:text-white">
-                        Edit {user.name}'s Details
-                    </h1>
+      <div className="flex flex-col gap-6 p-4">
+        {/* Top header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{user.name}'s Profile</h1>
+          <Link
+            href="/users"
+            className="rounded-md border px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+          >
+            Back to Users
+          </Link>
+        </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* Name Field */}
-                        <div>
-                            <label
-                                htmlFor="name"
-                                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                                Name
-                            </label>
-                            <input
-                                id="name"
-                                type="text"
-                                value={data.name}
-                                onChange={(e) =>
-                                    setData('name', e.target.value)
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700"
-                            />
-                            {errors.name && (
-                                <p className="mt-1 text-sm text-red-500">
-                                    {errors.name}
-                                </p>
-                            )}
-                        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Left: profile card */}
+          <div className="rounded-xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex flex-col items-center gap-4">
+              {/* Profile avatar */}
+              <div className="h-24 w-24 rounded-full bg-indigo-500 text-white flex items-center justify-center text-3xl font-bold">
+                {user.name[0]}
+              </div>
 
-                        {/* Email Field */}
-                        <div>
-                            <label
-                                htmlFor="email"
-                                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                                Email
-                            </label>
-                            <input
-                                id="email"
-                                type="email"
-                                value={data.email}
-                                onChange={(e) =>
-                                    setData('email', e.target.value)
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700"
-                            />
-                            {errors.email && (
-                                <p className="mt-1 text-sm text-red-500">
-                                    {errors.email}
-                                </p>
-                            )}
-                        </div>
+              <h2 className="text-xl font-semibold">{user.name}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+              <p className="text-sm font-medium mt-1">Role: {user.role}</p>
 
-                        {/* Role Field */}
-                        <div>
-                            <label
-                                htmlFor="role"
-                                className="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                                Role
-                            </label>
-                            <select
-                                id="role"
-                                value={data.role}
-                                onChange={(e) =>
-                                    setData('role', e.target.value)
-                                }
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-700"
-                            >
-                                <option value="Admin">Admin</option>
-                                <option value="Manager">Manager</option>
-                                <option value="Support">Support</option>
-                                <option value="Client">Client</option>
-                            </select>
-                            {errors.role && (
-                                <p className="mt-1 text-sm text-red-500">
-                                    {errors.role}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex justify-end space-x-3 pt-6">
-                            <Link
-                                href="/users"
-                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700"
-                                as="button"
-                                type="button"
-                            >
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Saving...' : 'Save Changes'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
+              {/* Projects summary */}
+              <div className="mt-4 w-full rounded-lg border p-4 text-center bg-gray-50 dark:bg-gray-700">
+                <p className="text-sm text-gray-600 dark:text-gray-300">Projects</p>
+                <p className="text-2xl font-bold mt-1">{user.projects.length}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  {user.projects.length > 0 ? "Active Projects" : "No projects yet"}
+                </p>
+              </div>
             </div>
-        </AppLayout>
-    );
+          </div>
+
+          {/* Right: projects list */}
+          <div className="md:col-span-2 rounded-xl border bg-white p-6 shadow-sm dark:bg-gray-800 dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Projects</h3>
+              <button
+                className="text-sm text-indigo-600 hover:underline dark:text-indigo-400"
+                onClick={() => setShowProjects(!showProjects)}
+              >
+                {showProjects ? "Hide" : "Show"}
+              </button>
+            </div>
+
+            {showProjects && (
+              <div className="space-y-3">
+                {user.projects.length > 0 ? (
+                  user.projects.map((project) => (
+                    <div
+                      key={project.id}
+                      className="flex items-center justify-between rounded-lg border px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
+                      <div>
+                        <p className="font-medium">{project.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Status: {project.status}
+                        </p>
+                      </div>
+                      <Link
+                        href={`/projects/${project.id}`}
+                        className="text-indigo-600 text-sm hover:underline dark:text-indigo-400"
+                      >
+                        View
+                      </Link>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No projects assigned.</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }
