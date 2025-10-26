@@ -284,16 +284,14 @@
 //   );
 // }
 
-
-// resources/js/Pages/Projects/Show.tsx
-import React, { useState, DragEvent, ChangeEvent } from "react";
+import React, { useState } from "react";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, usePage } from "@inertiajs/react";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Plus, Trash2 } from "lucide-react";
 import { type BreadcrumbItem } from "@/types";
 
-const breadcrumbsBase: BreadcrumbItem[] = [
-  { title: "Projects", href: "/projects" },
-];
+const breadcrumbsBase: BreadcrumbItem[] = [{ title: "Projects", href: "/projects" }];
 
 const dummyProject = {
   id: 1,
@@ -304,326 +302,147 @@ const dummyProject = {
   end_date: "2025-12-01",
 };
 
-const dummyUsers = ["Nafisa", "Anas", "Aisha", "Khalid"];
-
 const dummyTasks = [
-  {
-    id: 1,
-    title: "Design mockups",
-    assigned: "Aisha",
-    status: "in_progress",
-    priority: "High",
-    due_date: "2025-09-10",
-  },
-  {
-    id: 2,
-    title: "Research dataset",
-    assigned: "Nafisa",
-    status: "todo",
-    priority: "Medium",
-    due_date: "2025-09-20",
-  },
+  { id: 1, title: "Design mockups", assigned: "Aisha", status: "todo" },
+  { id: 2, title: "Research dataset", assigned: "Nafisa", status: "in_progress" },
+  { id: 3, title: "Finalize results", assigned: "Anas", status: "completed" },
 ];
 
 export default function Show() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const page: any = usePage();
   const project = page.props.project ?? dummyProject;
-  const initialTasks = page.props.tasks ?? dummyTasks;
-
-  const [tasks, setTasks] = useState(initialTasks);
-  const [q, setQ] = useState("");
+  const [tasks, setTasks] = useState(page.props.tasks ?? dummyTasks);
   const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
-  const [comments, setComments] = useState<{ [key: number]: string[] }>({});
-  const [newComment, setNewComment] = useState<{ [key: number]: string }>({});
-  const [uploadedFiles, setUploadedFiles] = useState<{ [key: number]: File[] }>({});
-  const [dragActive, setDragActive] = useState<{ [key: number]: boolean }>({});
 
-  const filtered = tasks.filter(
-    (t: any) =>
-      t.title.toLowerCase().includes(q.toLowerCase()) ||
-      (t.assigned ?? "").toLowerCase().includes(q.toLowerCase())
-  );
+  const columns = {
+    todo: { title: "To Do", items: tasks.filter((t) => t.status === "todo") },
+    in_progress: { title: "In Progress", items: tasks.filter((t) => t.status === "in_progress") },
+    completed: { title: "Done", items: tasks.filter((t) => t.status === "completed") },
+  };
 
-  function addTask(e: React.FormEvent) {
-    e.preventDefault();
+  function addTask(status: string) {
     if (!newTaskTitle.trim()) return;
-    const nt = {
+    const newTask = {
       id: Date.now(),
       title: newTaskTitle,
       assigned: "Unassigned",
-      status: "todo",
-      priority: "Medium",
-      due_date: "",
+      status,
     };
-    setTasks([nt, ...tasks]);
+    setTasks([...tasks, newTask]);
     setNewTaskTitle("");
   }
 
   function removeTask(id: number) {
-    if (!confirm("Delete task?")) return;
     setTasks(tasks.filter((t) => t.id !== id));
   }
 
-  function updateStatus(taskId: number, newStatus: string) {
-    setTasks(tasks.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
-    setEditingStatusId(null);
+  function onDragEnd(result: any) {
+    if (!result.destination) return;
+    const { source, destination } = result;
+    const updatedTasks = [...tasks];
+    const draggedTask = updatedTasks.find((t) => t.id === Number(result.draggableId));
+
+    if (draggedTask) {
+      draggedTask.status = destination.droppableId;
+      setTasks(updatedTasks);
+    }
   }
-
-  function updateAssignee(taskId: number, newUser: string) {
-    setTasks(tasks.map((t) => (t.id === taskId ? { ...t, assigned: newUser } : t)));
-  }
-
-  function addComment(taskId: number) {
-    const comment = newComment[taskId]?.trim();
-    if (!comment) return;
-    setComments({
-      ...comments,
-      [taskId]: [...(comments[taskId] || []), comment],
-    });
-    setNewComment({ ...newComment, [taskId]: "" });
-  }
-
-  // Handle drag & drop events
-  const handleDragOver = (e: DragEvent<HTMLDivElement>, taskId: number) => {
-    e.preventDefault();
-    setDragActive({ ...dragActive, [taskId]: true });
-  };
-
-  const handleDragLeave = (taskId: number) => {
-    setDragActive({ ...dragActive, [taskId]: false });
-  };
-
-  const handleDrop = (e: DragEvent<HTMLDivElement>, taskId: number) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    setUploadedFiles({
-      ...uploadedFiles,
-      [taskId]: [...(uploadedFiles[taskId] || []), ...files],
-    });
-    setDragActive({ ...dragActive, [taskId]: false });
-  };
-
-  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>, taskId: number) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    setUploadedFiles({
-      ...uploadedFiles,
-      [taskId]: [...(uploadedFiles[taskId] || []), ...files],
-    });
-  };
 
   return (
-    <AppLayout breadcrumbs={[...breadcrumbsBase, { title: project.name, href: `/projects/${project.id}` }]}>
+    <AppLayout
+      breadcrumbs={[...breadcrumbsBase, { title: project.name, href: `/projects/${project.id}` }]}
+    >
       <Head title={project.name} />
 
-      <div className="flex h-full flex-1 flex-col gap-6 p-4">
-        <header className="flex items-start justify-between">
+      <div className="p-6 space-y-8 bg-white min-h-screen text-black">
+        {/* Header */}
+        <header className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold">{project.name}</h1>
-            <p className="text-sm text-gray-600">
+            <h1 className="text-3xl font-bold text-black">{project.name}</h1>
+            <p className="text-sm text-gray-400">
               Owner: {project.owner} · Status: {project.status}
             </p>
-            <p className="text-sm text-gray-500">
-              Dates: {project.start_date} → {project.end_date}
+            <p className="text-xs text-gray-500">
+              {project.start_date} → {project.end_date}
             </p>
           </div>
           <div className="flex gap-2">
-            <Link href="/projects" className="rounded border px-3 py-2 text-sm">
+            <Link
+              href="/projects"
+              className="rounded border border-gray-600 px-3 py-2 text-sm hover:bg-gray-800"
+            >
               Back
             </Link>
             <Link
               href={`/projects/${project.id}/edit`}
-              className="rounded bg-yellow-500 px-3 py-2 text-sm text-white"
+              className="rounded bg-yellow-500 px-3 py-2 text-sm text-black hover:bg-yellow-400"
             >
               Edit Project
             </Link>
           </div>
         </header>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {/* left: tasks */}
-          <div className="md:col-span-2 rounded-xl border p-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Tasks</h3>
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="Search tasks..."
-                className="w-48 rounded border px-3 py-2 text-sm"
-              />
-            </div>
-
-            <div className="mt-4">
-              <form onSubmit={addTask} className="flex gap-2">
-                <input
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  placeholder="New task title"
-                  className="flex-1 rounded border px-3 py-2"
-                />
-                <button className="rounded bg-indigo-600 px-4 py-2 text-white">Add New Task</button>
-              </form>
-
-              <div className="mt-4 space-y-4">
-                {filtered.map((t: any) => (
-                  <div key={t.id} className="rounded-lg border p-3 shadow-sm bg-white">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="font-medium">{t.title}</p>
-                        <div className="text-sm text-gray-600">
-                          <span>Status: </span>
-                          {editingStatusId === t.id ? (
-                            <select
-                              value={t.status}
-                              onChange={(e) => updateStatus(t.id, e.target.value)}
-                              onBlur={() => setEditingStatusId(null)}
-                              className="rounded border px-2 py-1 text-sm"
-                              autoFocus
-                            >
-                              <option value="todo">To Do</option>
-                              <option value="in_progress">In Progress</option>
-                              <option value="completed">Completed</option>
-                            </select>
-                          ) : (
-                            <span
-                              onClick={() => setEditingStatusId(t.id)}
-                              className="cursor-pointer rounded px-2 py-1 bg-gray-200 hover:bg-gray-300"
-                            >
-                              {t.status.replace("_", " ")}
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-sm mt-1">
-                          <span>Assigned: </span>
-                          <select
-                            value={t.assigned}
-                            onChange={(e) => updateAssignee(t.id, e.target.value)}
-                            className="rounded border px-2 py-1 text-sm"
-                          >
-                            <option>Unassigned</option>
-                            {dummyUsers.map((u) => (
-                              <option key={u}>{u}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Link
-                          href={`/tasks/${t.id}`}
-                          className="rounded bg-blue-500 px-3 py-1 text-white text-xs"
-                        >
-                          Show Subtask
-                        </Link>
-                        <button
-                          onClick={() => removeTask(t.id)}
-                          className="rounded bg-red-500 px-3 py-1 text-white text-xs"
-                        >
-                          Delete
-                        </button>
-                      </div>
+        {/* Kanban Board */}
+        <DragDropContext onDragEnd={onDragEnd}>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-4">
+            {Object.entries(columns).map(([key, col]) => (
+              <Droppable droppableId={key} key={key}>
+                {(provided) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.droppableProps}
+                    className="bg-white p-4 rounded-2xl shadow-lg border border-gray-700 flex flex-col min-h-[400px]"
+                  >
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-semibold">{col.title}</h3>
+                      <button
+                        onClick={() => addTask(key)}
+                        className="flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300"
+                      >
+                        <Plus size={16} /> Create
+                      </button>
                     </div>
 
-                    {/* 🔽 Drag & Drop Upload Section 🔽 */}
-                    <div
-                      className={`mt-4 p-4 border-2 border-dashed rounded-xl text-center transition-all ${
-                        dragActive[t.id] ? "border-indigo-500 bg-indigo-50" : "border-gray-300"
-                      }`}
-                      onDragOver={(e) => handleDragOver(e, t.id)}
-                      onDragLeave={() => handleDragLeave(t.id)}
-                      onDrop={(e) => handleDrop(e, t.id)}
-                      onClick={() => document.getElementById(`fileInput-${t.id}`)?.click()}
-                    >
-                      <input
-                        id={`fileInput-${t.id}`}
-                        type="file"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleFileSelect(e, t.id)}
-                      />
-                      <p className="text-sm text-gray-500 italic">
-                         Drag & Drop files here <br />
-                        or click to browse
-                      </p>
-                    </div>
-
-                    {/* Uploaded file list */}
-                    {uploadedFiles[t.id]?.length ? (
-                      <ul className="mt-2 text-sm text-gray-600 list-disc list-inside">
-                        {uploadedFiles[t.id].map((f, i) => (
-                          <li key={i}>{f.name}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-
-                    {/* Comments */}
-                    <div className="mt-4 border-t pt-3">
-                      <h4 className="text-sm font-semibold text-gray-700 mb-1">Comments</h4>
-                      <div className="space-y-2 max-h-20 overflow-y-auto">
-                        {comments[t.id]?.length ? (
-                          comments[t.id].map((c, i) => (
+                    <div className="flex-1">
+                      {col.items.map((task, index) => (
+                        <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                          {(provided) => (
                             <div
-                              key={i}
-                              className="rounded bg-gray-50 px-2 py-1 text-sm border"
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              className=" bg-indigo-300  text-indigo-400 hover:text-indigo-500 border-gray-600 rounded-xl shadow p-3 mb-3 flex justify-between items-center transition"
                             >
-                              {c}
+                              <div>
+                               <Link
+  href={`/tasks/${task.id}`}
+  className="text-sm font-medium text-gray-900 hover:underline hover:text-indigo-700"
+>
+  {task.title}
+</Link>
+
+                                <p className="text-xs text-gray-600">
+                                  {task.assigned ?? "Unassigned"}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => removeTask(task.id)}
+                                className="text-red-400 hover:text-red-300"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </div>
-                          ))
-                        ) : (
-                          <p className="text-xs text-gray-400">No comments yet</p>
-                        )}
-                      </div>
-                      <div className="flex mt-2 gap-2">
-                        <input
-                          type="text"
-                          placeholder="Write comment..."
-                          value={newComment[t.id] || ""}
-                          onChange={(e) =>
-                            setNewComment({ ...newComment, [t.id]: e.target.value })
-                          }
-                          className="flex-1 rounded border px-2 py-1 text-sm"
-                        />
-                        <button
-                          onClick={() => addComment(t.id)}
-                          className="rounded bg-indigo-500 px-3 py-1 text-white text-xs"
-                        >
-                          Add
-                        </button>
-                      </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
                   </div>
-                ))}
-
-                {filtered.length === 0 && (
-                  <p className="text-center text-sm text-gray-500 py-4">No tasks found</p>
                 )}
-              </div>
-            </div>
+              </Droppable>
+            ))}
           </div>
-
-          {/* right: project summary */}
-          <aside className="rounded-xl border p-4">
-            <h3 className="font-semibold">Project Summary</h3>
-            <ul className="mt-3 space-y-2 text-sm text-gray-700">
-              <li>
-                <strong>Owner:</strong> {project.owner}
-              </li>
-              <li>
-                <strong>Status:</strong> {project.status}
-              </li>
-              <li>
-                <strong>Start:</strong> {project.start_date}
-              </li>
-              <li>
-                <strong>End:</strong> {project.end_date}
-              </li>
-              <li>
-                <strong>Tasks:</strong> {tasks.length}
-              </li>
-            </ul>
-          </aside>
-        </div>
+        </DragDropContext>
       </div>
     </AppLayout>
   );

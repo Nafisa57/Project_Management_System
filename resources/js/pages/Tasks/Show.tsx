@@ -252,7 +252,9 @@
 // }
 
 
-import React, { useState, useRef } from "react";
+
+
+import React, { useState } from "react";
 import AppLayout from "@/layouts/app-layout";
 import { Head, Link, usePage } from "@inertiajs/react";
 import { type BreadcrumbItem } from "@/types";
@@ -293,6 +295,7 @@ const dummySubtasks: Subtask[] = [
 ];
 
 export default function Show() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const page: any = usePage();
   const task: Task = page.props.task ?? dummyTask;
   const initialSubtasks: Subtask[] = page.props.subtasks ?? dummySubtasks;
@@ -305,13 +308,9 @@ export default function Show() {
 
   const [comments, setComments] = useState<Record<number, string[]>>({});
   const [newComment, setNewComment] = useState<Record<number, string>>({});
-  const [uploadedFiles, setUploadedFiles] = useState<Record<number, File[]>>({});
-
-  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const filtered = subtasks.filter((s) =>
-    s.title.toLowerCase().includes(q.toLowerCase()) ||
-    (s.assigned ?? "").toLowerCase().includes(q.toLowerCase())
+    s.title.toLowerCase().includes(q.toLowerCase()) || (s.assigned ?? "").toLowerCase().includes(q.toLowerCase())
   );
 
   function addSubtask(e?: React.FormEvent) {
@@ -355,24 +354,6 @@ export default function Show() {
     setNewComment({ ...newComment, [subtaskId]: "" });
   }
 
-  function handleFileSelect(subtaskId: number, files: FileList | null) {
-    if (!files) return;
-    const fileArr = Array.from(files);
-    setUploadedFiles({
-      ...uploadedFiles,
-      [subtaskId]: [...(uploadedFiles[subtaskId] || []), ...fileArr],
-    });
-  }
-
-  function handleDrop(subtaskId: number, e: React.DragEvent<HTMLDivElement>) {
-    e.preventDefault();
-    handleFileSelect(subtaskId, e.dataTransfer.files);
-  }
-
-  function handleClickUpload(subtaskId: number) {
-    fileInputRefs.current[subtaskId]?.click();
-  }
-
   return (
     <AppLayout breadcrumbs={[...breadcrumbsBase, { title: task.title, href: `/tasks/${task.id}` }]}>
       <Head title={task.title} />
@@ -384,22 +365,21 @@ export default function Show() {
             <p className="text-sm text-gray-600 mt-1">
               Status: {task.status ?? "-"} · Assigned: {task.assigned ?? "-"}
             </p>
-            <p className="text-sm text-gray-500 mt-1">
-              {projectId ? (
-                <Link href={`/projects/${projectId}`} className="text-sm text-indigo-600 hover:underline">
-                  Back to Task
-                </Link>
-              ) : (
-                <Link href="/projects" className="text-sm text-indigo-600 hover:underline">
-                  Back to projects
-                </Link>
-              )}
-            </p>
           </div>
         </header>
 
-        {/* Main card */}
-        <div className="rounded-xl border p-5 bg-white shadow-lg shadow-purple-300/50">
+        {/* Back Button */}
+        <div className="mt-2">
+          <Link
+            href={projectId ? `/projects/${projectId}` : "/projects"}
+            className="inline-block rounded bg-gray-200 hover:bg-gray-300 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition"
+          >
+            &larr; Back to Task
+          </Link>
+        </div>
+
+        {/* Main card with purple shadow */}
+        <div className="rounded-xl border p-5 bg-white shadow-lg shadow-purple-300/50 mt-4">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-black">Subtasks</h3>
             <div className="flex items-center gap-2">
@@ -416,10 +396,7 @@ export default function Show() {
                   placeholder="New subtask title"
                   className="rounded border px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
                 />
-                <button
-                  type="submit"
-                  className="rounded bg-purple-600 hover:bg-purple-700 px-4 py-2 text-sm text-white shadow-md shadow-purple-400/60 transition"
-                >
+                <button type="submit" className="rounded bg-purple-600 hover:bg-purple-700 px-4 py-2 text-sm text-white shadow-md shadow-purple-400/60 transition">
                   Add
                 </button>
               </form>
@@ -480,35 +457,7 @@ export default function Show() {
                       )}
                     </div>
 
-                    {/* Drag & Drop Zone */}
-                    <div
-                      onClick={() => handleClickUpload(s.id)}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => handleDrop(s.id, e)}
-                      className="mt-4 flex flex-col items-center justify-center border-2 border-dashed border-purple-400 rounded-lg p-4 text-sm text-purple-600 bg-purple-50 hover:bg-purple-100 cursor-pointer transition relative"
-                    >
-                      <span className="font-medium"> Drag and Drop Here </span>
-                      <input
-                        type="file"
-                        multiple
-                        ref={(el) => (fileInputRefs.current[s.id] = el)}
-                        onChange={(e) => handleFileSelect(s.id, e.target.files)}
-                        className="hidden"
-                      />
-                    </div>
-
-                    {uploadedFiles[s.id]?.length > 0 && (
-                      <div className="mt-2 text-xs text-gray-700 space-y-1">
-                        {uploadedFiles[s.id].map((f, i) => (
-                          <div key={i} className="bg-purple-50 border border-purple-200 rounded px-2 py-1">
-                            📎 {f.name}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Comments Section */}
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <div className="text-sm font-semibold text-black mb-1">Comments</div>
                       <div className="space-y-2 max-h-36 overflow-y-auto">
                         {comments[s.id]?.length ? (
@@ -522,29 +471,28 @@ export default function Show() {
                         )}
                       </div>
 
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="text"
-                          placeholder="Write a comment..."
-                          value={newComment[s.id] || ""}
-                          onChange={(e) => setNewComment({ ...newComment, [s.id]: e.target.value })}
-                          className="min-w-0 flex-1 rounded border px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-purple-400"
-                        />
-                        <button
-                          onClick={() => addCommentForSubtask(s.id)}
-                          className="shrink-0 rounded bg-purple-600 hover:bg-purple-700 px-3 py-2 text-sm text-white shadow-md shadow-purple-400/60 transition"
-                        >
-                          Add
-                        </button>
+                      <div className="mt-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            placeholder="Write a comment..."
+                            value={newComment[s.id] || ""}
+                            onChange={(e) => setNewComment({ ...newComment, [s.id]: e.target.value })}
+                            className="min-w-0 flex-1 rounded border px-3 py-2 text-sm shadow-sm focus:ring-2 focus:ring-purple-400"
+                          />
+                          <button
+                            onClick={() => addCommentForSubtask(s.id)}
+                            className="shrink-0 rounded bg-purple-600 hover:bg-purple-700 px-3 py-2 text-sm text-white shadow-md shadow-purple-400/60 transition"
+                          >
+                            Add
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
 
                   <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                    <button
-                      onClick={() => deleteSubtask(s.id)}
-                      className="rounded bg-red-500 hover:bg-red-600 px-3 py-1 text-white text-xs shadow-md shadow-red-300/50 transition"
-                    >
+                    <button onClick={() => deleteSubtask(s.id)} className="rounded bg-red-500 hover:bg-red-600 px-3 py-1 text-white text-xs shadow-md shadow-red-300/50 transition">
                       Delete
                     </button>
                   </div>

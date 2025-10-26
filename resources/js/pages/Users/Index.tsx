@@ -31,7 +31,15 @@ export default function Index() {
             <div className="flex h-full flex-1 flex-col gap-6 bg-gray-50 p-6">
                 {/* Top bar */}
                 <div className="flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-gray-800">Users</h1>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+  {/* <img 
+    src="/user.png" 
+    alt="User Icon" 
+    className="w-30 h-30" // Tailwind: 40px x 40px
+  /> */}
+  Users
+</h1>
+
                     <input
                         type="text"
                         placeholder="Search users..."

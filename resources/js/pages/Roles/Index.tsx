@@ -116,6 +116,8 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { useEffect } from 'react';
+// import { animate } from 'animejs';
 
 const breadcrumbs: BreadcrumbItem[] = [{ title: 'Roles', href: '/roles' }];
 
@@ -128,6 +130,16 @@ const dummyRoles = [
 ];
 
 export default function Index() {
+//     const [aquery, setaQuery] = useState('');
+
+//   useEffect(() => {
+//   animate('.square', {
+//     opacity: { from: 0.5, to: 1 },      // Animate from 0.5 opacity to 1
+//     translateX: { from: '16rem', to: '0rem' }, // From 16rem to 0
+//     rotate: { from: '-.75turn', to: '0turn', ease: 'inOutQuad' },
+//   });
+// }, []); // <-- empty dependency array, run once on mount
+
     const [query, setQuery] = useState('');
 
     const filteredRoles = dummyRoles.filter(
@@ -141,6 +153,11 @@ export default function Index() {
             <Head title="Roles" />
 
             <div className="flex h-full flex-1 flex-col gap-6 bg-gray-50 p-6">
+                {/* Top bar with animated image */}
+        <div className="flex items-center gap-4">
+          {/* <img src="/role.png" className="square h-12 w-12" alt="Roles" /> */}
+          {/* <h1 className="text-2xl font-bold text-gray-800">Roles</h1> */}
+        </div>
                 {/* Top bar */}
                 <div className="flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-gray-800">Roles</h1>
